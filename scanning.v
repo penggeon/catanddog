@@ -2,7 +2,9 @@
 module scanning(
 	input clk_1kHz,
 	input clk_4Hz,
+	input clk_025Hz,
 	input sw6,
+	input sw5,
 
 	input btn_7_out,
 	input btn_6_out,
@@ -35,7 +37,8 @@ module scanning(
 	output reg [1:0] cnt_mouse,
 	output reg [3:0] cnt_canoe,
 
-	output reg [1:0] gameState
+	output reg [1:0] gameState,
+	output reg [1:0] gameDifficulty		// 游戏难度
 );
 
 initial begin
@@ -55,32 +58,34 @@ initial begin
 	canoe_position <= 0;
 
 	gameState <= 2'd2;
+	gameDifficulty <= 2'd0;
 
 	count_4 <= 0;
 end
 
 reg [1:0] count_4;	// 模4计数器
 
+/* 游戏逻辑 */
 always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out, posedge btn_4_out, posedge btn_0_out)begin
 	if(btn_7_out)begin
 		if(cat_position ~^ canoe_position && gameState == 2'd2
 			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)	// 防止重复按下按钮
-			&& sw6)	cat_crossing <= 1;		// 开关控制
+			&& sw6 && ~sw5)	cat_crossing <= 1;		// 开关控制
 	end
 	else if(btn_6_out)begin
 		if(dog_position ~^ canoe_position && gameState == 2'd2
 			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
-			&& sw6)	dog_crossing <= 1;
+			&& sw6 && ~sw5)	dog_crossing <= 1;
 	end
 	else if(btn_5_out)begin
 		if(mouse_position ~^ canoe_position && gameState == 2'd2
 			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
-			&& sw6)	mouse_crossing <= 1;
+			&& sw6 && ~sw5)	mouse_crossing <= 1;
 	end
 	else if(btn_4_out)begin
 		if(gameState == 2'd2
 			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
-			&& sw6)	canoe_crossing <= 1;
+			&& sw6 && ~sw5)	canoe_crossing <= 1;
 	end
 	else if (btn_0_out) begin	// 复位
 		if(!(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
@@ -278,7 +283,24 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 	else begin
 		if(cat_position & dog_position & mouse_position)	gameState <= 2'd1;
 		else if((cat_position ~^ dog_position && cat_position ^ canoe_position) || (cat_position ~^ mouse_position && cat_position ^ canoe_position))	gameState <= 2'd0;
-		else gameState <= 2'd2;
+		else begin
+			case (gameDifficulty)
+			0: if(tens == 1 &&  ones == 5) gameState <= 0;
+			1: if(tens == 1 &&  ones == 3) gameState <= 0;
+			2: if(tens == 0 &&  ones == 9) gameState <= 0;
+			default: if(tens == 0 &&  ones == 7) gameState <= 0;
+		endcase
+		end
+	end
+end
+
+/* 难度设置 */
+always @(posedge clk_025Hz, posedge btn_0_out) begin
+	if(btn_0_out)begin
+		gameDifficulty <= sw6 ? 0 : gameDifficulty;
+	end
+	else begin
+		gameDifficulty <= (sw5 && sw6) ? gameDifficulty + 1 : gameDifficulty;
 	end
 end
 
@@ -291,31 +313,92 @@ always @(posedge clk_1kHz)begin
 		cnt_8 <= cnt_8 + 1;
 end
 
+/* 点阵 */
 always @(*)begin
 	case (sw6)
 		1'd1: 
-			case(cnt_8)
-				3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
-				3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
-				3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
-				3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
-				3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
-				3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
-				3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
-				3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+			case (sw5)
+				1'd1:
+					case (gameDifficulty)
+						0:				// 游戏难度 0
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0010_0010;end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0110_1010;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0000;col_g = 8'b1110_1111;end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0000;col_g = 8'b1111_1111;end
+							endcase
+						1:				// 游戏难度 1
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b1000_1000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b1010_1010;end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b1010_1011;end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b1111_1111;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0000;col_g = 8'b1111_1111;end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0000;col_g = 8'b1111_1111;end
+							endcase
+						2:				// 游戏难度 2
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b1000_1000;col_g = 8'b1000_1000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b1010_1010;col_g = 8'b1010_1010;end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b1010_1011;col_g = 8'b1010_1011;end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b1111_1111;col_g = 8'b1111_1111;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b1111_1111;col_g = 8'b1111_1111;end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b1111_1111;col_g = 8'b1111_1111;end
+							endcase
+						default:		// 游戏难度 3
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b0010_1000;col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b0011_1000;col_g = 8'b0000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b0011_1010;col_g = 8'b0000_0000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b0111_1110;col_g = 8'b0000_0000;end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b1111_1111;col_g = 8'b0000_0000;end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b1111_1111;col_g = 8'b0000_0000;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b1111_1111;col_g = 8'b0000_0000;end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b1111_1111;col_g = 8'b0000_0000;end
+							endcase
+					endcase
+				default:		// 正常游戏
+					case(cnt_8)
+						3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
+						3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
+						3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+						3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
+						3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
+						3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+						3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+						3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+					endcase
 			endcase
+			
 		default: begin row = 8'b1111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
 	endcase
 	
 end
 
+/* LED灯 */
 always @(*) begin
 	case (sw6)
 		1'd1:
-			case (gameState)
-				2'd0: LD = 16'b0000_0000_0000_0000;
-				2'd1: LD = 16'b1111_1111_1111_1111;
-				default: LD = 16'b1000_0000_0000_0000 >> cnt_canoe;
+			case (sw5)
+				1'd1:		// 设置游戏难度
+					case (count_2)
+						1'd0: LD = 16'b1001_1001_1001_1001;
+						default: LD = 16'b0110_0110_0110_0110;
+					endcase
+				default:	// 正常游戏
+					case (gameState)
+						2'd0: LD = 16'b0000_0000_0000_0000;
+						2'd1: LD = 16'b1111_1111_1111_1111;
+						default: LD = 16'b1000_0000_0000_0000 >> cnt_canoe;
+					endcase
 			endcase
 		default: LD = 16'b0000_0000_0000_0000;
 	endcase
@@ -327,38 +410,60 @@ initial begin
 	ones <= 4'd0;
 	tens <= 4'd0;
 end
+
+/* 数码管 */
 always @(*) begin
 	case (sw6)
 		1'd1:
 			case (count_2)
 				1'd0:begin		// 个位
 					cat = 8'b1111_1110;
-					case (ones)
-						0: seg = 8'b0011_1111;
-						1: seg = 8'b0000_0110;
-						2: seg = 8'b0101_1011;
-						3: seg = 8'b0100_1111;
-						4: seg = 8'b0110_0110;
-						5: seg = 8'b0110_1101;
-						6: seg = 8'b0111_1101;
-						7: seg = 8'b0000_0111;
-						8: seg = 8'b0111_1111;
-						default: seg = 8'b0110_1111;
+					case (sw5)
+						1'd1:		// 设置难度
+							case (gameDifficulty)
+								0: seg = 8'b0110_1101;         // easy: 15
+								1: seg = 8'b0100_1111;         // normal: 13
+								2: seg = 8'b0110_1111;         // hard: 9
+								default: seg = 8'b0000_0111;   // difficult: 7
+							endcase
+						default:
+							case (ones)
+								0: seg = 8'b0011_1111;
+								1: seg = 8'b0000_0110;
+								2: seg = 8'b0101_1011;
+								3: seg = 8'b0100_1111;
+								4: seg = 8'b0110_0110;
+								5: seg = 8'b0110_1101;
+								6: seg = 8'b0111_1101;
+								7: seg = 8'b0000_0111;
+								8: seg = 8'b0111_1111;
+								default: seg = 8'b0110_1111;
+							endcase
 					endcase
 				end
 				default:begin	// 十位
 					cat = 8'b1111_1101;
-					case (tens)
-						0: seg = 8'b0011_1111;
-						1: seg = 8'b0000_0110;
-						2: seg = 8'b0101_1011;
-						3: seg = 8'b0100_1111;
-						4: seg = 8'b0110_0110;
-						5: seg = 8'b0110_1101;
-						6: seg = 8'b0111_1101;
-						7: seg = 8'b0000_0111;
-						8: seg = 8'b0111_1111;
-						default: seg = 8'b0110_1111;
+					case (sw5)
+						1'd1:		// 设置难度
+							case (gameDifficulty)
+								0: seg = 8'b0000_0110;         // easy: 15
+								1: seg = 8'b0000_0110;         // normal: 13
+								2: seg = 8'b0011_1111;         // hard: 9
+								default: seg = 8'b0011_1111;   // difficult: 7
+							endcase
+						default:
+							case (tens)
+								0: seg = 8'b0011_1111;
+								1: seg = 8'b0000_0110;
+								2: seg = 8'b0101_1011;
+								3: seg = 8'b0100_1111;
+								4: seg = 8'b0110_0110;
+								5: seg = 8'b0110_1101;
+								6: seg = 8'b0111_1101;
+								7: seg = 8'b0000_0111;
+								8: seg = 8'b0111_1111;
+								default: seg = 8'b0110_1111;
+							endcase
 					endcase
 				end
 			endcase

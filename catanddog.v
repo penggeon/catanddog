@@ -6,6 +6,7 @@ module catanddog(
 	input btn_4,			// 独木舟
 	input btn_0,			// 复位键
 	input sw6,				// 开关拨码
+	input sw5,				// 选择难度
 
 	output [7:0] row,		// 行信号（低电平有效）
 	output [7:0] col_r,		// 列信号_红（高电平有效）
@@ -17,6 +18,7 @@ module catanddog(
 
 	output clk_1Hz,
 	output clk_4Hz,
+	output clk_025Hz,
 
 	output btn_7_out,
 	output btn_6_out,
@@ -40,6 +42,7 @@ module catanddog(
 	output [3:0] ones,
 	output [3:0] tens,
 
+	output [1:0] gameDifficulty,
 	output [1:0] gameState	// 0失败1成功2继续
 );
 
@@ -53,12 +56,13 @@ debounce debounce_0(clk_1kHz,btn_7,btn_7_out);
 debounce debounce_1(clk_1kHz,btn_6,btn_6_out);
 debounce debounce_2(clk_1kHz,btn_5,btn_5_out);
 debounce debounce_3(clk_1kHz,btn_4,btn_4_out);
-debounce debounce_4(clk_1kHz,btn_0,btn_0_out);
+debounce debounce_5(clk_1kHz,btn_0,btn_0_out);
 
 divide_1000 divide_0(clk_1kHz,clk_1Hz);
 divide_4Hz divide_4Hz_0(clk_1kHz,clk_4Hz);
+divide_025Hz divide_025Hz_0(clk_1kHz,clk_025Hz);
 
-scanning scan_0(clk_1kHz,clk_4Hz,sw6,
+scanning scan_0(clk_1kHz,clk_4Hz,clk_025Hz,sw6,sw5,
 btn_7_out,btn_6_out,btn_5_out,btn_4_out,btn_0_out,
 cat_position,dog_position,mouse_position,canoe_position,
 cat_crossing,dog_crossing,mouse_crossing,canoe_crossing,
@@ -66,7 +70,7 @@ ones,tens,
 row,col_r,col_g,LD,
 seg,cat,
 cnt_cat,cnt_dog,cnt_mouse,cnt_canoe,
-gameState
+gameState,gameDifficulty
 );
 
 endmodule
