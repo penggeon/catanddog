@@ -1,8 +1,8 @@
 //-------------扫描显示模块---------------------
 module scanning(
 	input clk_1kHz,
-	input clk_1Hz,
 	input clk_4Hz,
+	input sw6,
 
 	input btn_7_out,
 	input btn_6_out,
@@ -57,19 +57,23 @@ reg [1:0] count_4;	// 模4计数器
 always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out, posedge btn_4_out)begin
 	if(btn_7_out)begin
 		if(cat_position ~^ canoe_position && gameState == 2'd2
-			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing))	cat_crossing <= 1;
+			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)	// 防止重复按下按钮
+			&& sw6)	cat_crossing <= 1;		// 开关控制
 	end
 	else if(btn_6_out)begin
 		if(dog_position ~^ canoe_position && gameState == 2'd2
-			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing))	dog_crossing <= 1;
+			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
+			&& sw6)	dog_crossing <= 1;
 	end
 	else if(btn_5_out)begin
 		if(mouse_position ~^ canoe_position && gameState == 2'd2
-			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing))	mouse_crossing <= 1;
+			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
+			&& sw6)	mouse_crossing <= 1;
 	end
 	else if(btn_4_out)begin
 		if(gameState == 2'd2
-			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing))	canoe_crossing <= 1;
+			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
+			&& sw6)	canoe_crossing <= 1;
 	end
 	else if(cat_crossing == 1'b1)begin			// 当按下按钮，开始过河
 		if(cat_position)begin		// 原来在右岸
@@ -207,24 +211,33 @@ always @(posedge clk_1kHz)begin
 		cnt_8 <= cnt_8 + 1;
 end
 
-always @(cnt_8)begin
-	case(cnt_8)
-		3'd7:begin row=8'b0111_1111;col_r<=8'b0000_0011<<(cnt_cat*2);col_g<=8'b0000_0000;end
-		3'd6:begin row=8'b1011_1111;col_r<=8'b0000_0011<<(cnt_cat*2);col_g<=8'b0000_0000;end
-		3'd5:begin row=8'b1101_1111;col_r<=8'b0000_0000;col_g<=8'b0000_0000;end
-		3'd4:begin row=8'b1110_1111;col_r<=8'b0000_0000;col_g<=8'b0000_0011<<(cnt_dog*2);end
-		3'd3:begin row=8'b1111_0111;col_r<=8'b0000_0000;col_g<=8'b0000_0011<<(cnt_dog*2);end
-		3'd2:begin row=8'b1111_1011;col_r<=8'b0000_0000;col_g<=8'b0000_0000;end
-		3'd1:begin row=8'b1111_1101;col_r<=8'b0000_0011<<(cnt_mouse*2);col_g<=8'b0000_0011<<(cnt_mouse*2);end
-		3'd0:begin row=8'b1111_1110;col_r<=8'b0000_0011<<(cnt_mouse*2);col_g<=8'b0000_0011<<(cnt_mouse*2);end
+always @(*)begin
+	case (sw6)
+		1'd1: 
+			case(cnt_8)
+				3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
+				3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
+				3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+				3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
+				3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
+				3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+				3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+				3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+			endcase
+		default: begin row = 8'b1111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
 	endcase
+	
 end
 
 always @(*) begin
-	case (gameState)
-		2'd0: LD = 16'b0000_0000_0000_0000;
-		2'd1: LD = 16'b1111_1111_1111_1111;
-		default: LD = 16'b1000_0000_0000_0000 >> cnt_canoe;
+	case (sw6)
+		1'd1:
+			case (gameState)
+				2'd0: LD = 16'b0000_0000_0000_0000;
+				2'd1: LD = 16'b1111_1111_1111_1111;
+				default: LD = 16'b1000_0000_0000_0000 >> cnt_canoe;
+			endcase
+		default: LD = 16'b0000_0000_0000_0000;
 	endcase
 end
 

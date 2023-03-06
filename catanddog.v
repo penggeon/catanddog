@@ -4,6 +4,8 @@ module catanddog(
 	input btn_6,			// 狗
 	input btn_5,			// 鼠
 	input btn_4,			// 鼠
+	input sw6,				// 开关拨码
+
 	output [7:0] row,		// 行信号（低电平有效）
 	output [7:0] col_r,		// 列信号_红（高电平有效）
 	output [7:0] col_g,		// 列信号_绿（高电平有效）
@@ -47,7 +49,8 @@ debounce debounce_3(clk_1kHz,btn_4,btn_4_out);
 divide_1000 divide_0(clk_1kHz,clk_1Hz);
 divide_4Hz divide_4Hz_0(clk_1kHz,clk_4Hz);
 
-scanning scan_0(clk_1kHz,clk_1Hz,clk_4Hz,btn_7_out,btn_6_out,btn_5_out,btn_4_out,
+scanning scan_0(clk_1kHz,clk_4Hz,sw6,
+btn_7_out,btn_6_out,btn_5_out,btn_4_out,
 cat_position,dog_position,mouse_position,canoe_position,
 cat_crossing,dog_crossing,mouse_crossing,canoe_crossing,
 row,col_r,col_g,LD,
