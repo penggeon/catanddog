@@ -102,6 +102,8 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 
 			ones <= 4'd0;
 			tens <= 4'd0;
+
+			gameState <= 2;
 		end
 	end
 	else if(cat_crossing == 1'b1)begin	// 猫过河
@@ -366,18 +368,43 @@ always @(*)begin
 							endcase
 					endcase
 				default:		// 正常游戏
-					case(cnt_8)
-						3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
-						3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
-						3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
-						3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
-						3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
-						3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
-						3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
-						3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+					case (gameState)
+						0:			// 失败
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b1100_0011;col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b1110_0111;col_g = 8'b0000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b0111_1110;col_g = 8'b0000_0000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b0011_1100;col_g = 8'b0000_0000;end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b0011_1100;col_g = 8'b0000_0000;end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b0111_1110;col_g = 8'b0000_0000;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b1110_0111;col_g = 8'b0000_0000;end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b1100_0011;col_g = 8'b0000_0000;end
+							endcase
+						1:			// 成功
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0000;col_g = 8'b1000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b1100_0000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0110_0001;end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0011_0011;end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0001_1110;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0000;col_g = 8'b0000_1100;end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+							endcase
+						default:	// 继续游戏
+							case(cnt_8)
+								3'd7:begin row = 8'b0111_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
+								3'd6:begin row = 8'b1011_1111;col_r = 8'b0000_0011<<(cnt_cat*2);col_g = 8'b0000_0000;end
+								3'd5:begin row = 8'b1101_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd4:begin row = 8'b1110_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
+								3'd3:begin row = 8'b1111_0111;col_r = 8'b0000_0000;col_g = 8'b0000_0011<<(cnt_dog*2);end
+								3'd2:begin row = 8'b1111_1011;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
+								3'd1:begin row = 8'b1111_1101;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+								3'd0:begin row = 8'b1111_1110;col_r = 8'b0000_0011<<(cnt_mouse*2);col_g = 8'b0000_0011<<(cnt_mouse*2);end
+							endcase
 					endcase
+					
 			endcase
-			
 		default: begin row = 8'b1111_1111;col_r = 8'b0000_0000;col_g = 8'b0000_0000;end
 	endcase
 	
@@ -426,18 +453,23 @@ always @(*) begin
 								2: seg = 8'b0110_1111;         // hard: 9
 								default: seg = 8'b0000_0111;   // difficult: 7
 							endcase
-						default:
-							case (ones)
-								0: seg = 8'b0011_1111;
-								1: seg = 8'b0000_0110;
-								2: seg = 8'b0101_1011;
-								3: seg = 8'b0100_1111;
-								4: seg = 8'b0110_0110;
-								5: seg = 8'b0110_1101;
-								6: seg = 8'b0111_1101;
-								7: seg = 8'b0000_0111;
-								8: seg = 8'b0111_1111;
-								default: seg = 8'b0110_1111;
+						default:		// 正常游戏
+							case (gameState)
+								0: seg = 8'b0111_0110;	// 失败
+								1: seg = 8'b0011_1110;	// 成功
+								default: 
+									case (ones)
+										0: seg = 8'b0011_1111;
+										1: seg = 8'b0000_0110;
+										2: seg = 8'b0101_1011;
+										3: seg = 8'b0100_1111;
+										4: seg = 8'b0110_0110;
+										5: seg = 8'b0110_1101;
+										6: seg = 8'b0111_1101;
+										7: seg = 8'b0000_0111;
+										8: seg = 8'b0111_1111;
+										default: seg = 8'b0110_1111;
+									endcase
 							endcase
 					endcase
 				end
@@ -451,18 +483,23 @@ always @(*) begin
 								2: seg = 8'b0011_1111;         // hard: 9
 								default: seg = 8'b0011_1111;   // difficult: 7
 							endcase
-						default:
-							case (tens)
-								0: seg = 8'b0011_1111;
-								1: seg = 8'b0000_0110;
-								2: seg = 8'b0101_1011;
-								3: seg = 8'b0100_1111;
-								4: seg = 8'b0110_0110;
-								5: seg = 8'b0110_1101;
-								6: seg = 8'b0111_1101;
-								7: seg = 8'b0000_0111;
-								8: seg = 8'b0111_1111;
-								default: seg = 8'b0110_1111;
+						default:		// 正常游戏
+							case (gameState)
+								0: seg = 8'b0111_0110;	// 失败
+								1: seg = 8'b0011_1110;	// 成功
+								default: 
+									case (tens)
+										0: seg = 8'b0011_1111;
+										1: seg = 8'b0000_0110;
+										2: seg = 8'b0101_1011;
+										3: seg = 8'b0100_1111;
+										4: seg = 8'b0110_0110;
+										5: seg = 8'b0110_1101;
+										6: seg = 8'b0111_1101;
+										7: seg = 8'b0000_0111;
+										8: seg = 8'b0111_1111;
+										default: seg = 8'b0110_1111;
+									endcase
 							endcase
 					endcase
 				end

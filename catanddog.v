@@ -14,43 +14,67 @@ module catanddog(
 	output [15:0] LD,
 
 	output [7:0] seg,
-	output [7:0] cat,
+	output [7:0] cat
 
-	output clk_1Hz,
-	output clk_4Hz,
-	output clk_025Hz,
+	// output clk_1Hz,
+	// output clk_4Hz,
+	// output clk_025Hz,
 
-	output btn_7_out,
-	output btn_6_out,
-	output btn_5_out,
-	output btn_4_out,
-	output btn_0_out,
+	// output btn_7_out,
+	// output btn_6_out,
+	// output btn_5_out,
+	// output btn_4_out,
+	// output btn_0_out,
 
-	output cat_crossing,
-	output dog_crossing,
-	output mouse_crossing,
-	output canoe_crossing,
-	output cat_position,
-	output dog_position,
-	output mouse_position,
-	output canoe_position,
-	output [1:0] cnt_cat,
-	output [1:0] cnt_dog,
-	output [1:0] cnt_mouse,
-	output [3:0] cnt_canoe,
+	// output cat_crossing,
+	// output dog_crossing,
+	// output mouse_crossing,
+	// output canoe_crossing,
+	// output cat_position,
+	// output dog_position,
+	// output mouse_position,
+	// output canoe_position,
+	// output [1:0] cnt_cat,
+	// output [1:0] cnt_dog,
+	// output [1:0] cnt_mouse,
+	// output [3:0] cnt_canoe,
 
-	output [3:0] ones,
-	output [3:0] tens,
+	// output [3:0] ones,
+	// output [3:0] tens,
 
-	output [1:0] gameDifficulty,
-	output [1:0] gameState	// 0失败1成功2继续
+	// output [1:0] gameDifficulty,
+	// output [1:0] gameState	// 0失败1成功2继续
 );
 
 // ---引用模块实例---
-// wire clk_1Hz;
-// wire btn_7_out;
-// wire btn_6_out;
-// wire btn_5_out;
+wire clk_1Hz;
+wire clk_4Hz;
+wire clk_025Hz;
+
+wire btn_7_out;
+wire btn_6_out;
+wire btn_5_out;
+wire btn_4_out;
+wire btn_0_out;
+
+wire cat_crossing;
+wire dog_crossing;
+wire mouse_crossing;
+wire canoe_crossing;
+wire cat_position;
+wire dog_position;
+wire mouse_position;
+wire canoe_position;
+wire [1:0] cnt_cat;
+wire [1:0] cnt_dog;
+wire [1:0] cnt_mouse;
+wire [3:0] cnt_canoe;
+
+wire [3:0] ones;
+wire [3:0] tens;
+
+wire [1:0] gameDifficulty;
+wire [1:0] gameState;
 
 debounce debounce_0(clk_1kHz,btn_7,btn_7_out);
 debounce debounce_1(clk_1kHz,btn_6,btn_6_out);
