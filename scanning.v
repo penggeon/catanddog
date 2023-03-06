@@ -8,6 +8,7 @@ module scanning(
 	input btn_6_out,
 	input btn_5_out,
 	input btn_4_out,
+	input btn_0_out,
 	output reg cat_position,
 	output reg dog_position,
 	output reg mouse_position,
@@ -17,11 +18,17 @@ module scanning(
 	output reg dog_crossing,
 	output reg mouse_crossing,
 	output reg canoe_crossing,
+
+	output reg [3:0] ones,
+	output reg [3:0] tens,
 	
 	output reg [7:0] row,			// 行信号（低电平有效）
 	output reg [7:0] col_r,			// 列信号_红（高电平有效）
 	output reg [7:0] col_g,			// 列信号_绿（高电平有效）
 	output reg [15:0] LD,
+
+	output reg [7:0] seg,
+	output reg [7:0] cat,
 
 	output reg [1:0] cnt_cat,
 	output reg [1:0] cnt_dog,
@@ -54,7 +61,7 @@ end
 
 reg [1:0] count_4;	// 模4计数器
 
-always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out, posedge btn_4_out)begin
+always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out, posedge btn_4_out, posedge btn_0_out)begin
 	if(btn_7_out)begin
 		if(cat_position ~^ canoe_position && gameState == 2'd2
 			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)	// 防止重复按下按钮
@@ -75,15 +82,39 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			&& !(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
 			&& sw6)	canoe_crossing <= 1;
 	end
-	else if(cat_crossing == 1'b1)begin			// 当按下按钮，开始过河
-		if(cat_position)begin		// 原来在右岸
+	else if (btn_0_out) begin	// 复位
+		if(!(cat_crossing | dog_crossing | mouse_crossing | canoe_crossing)
+			&& sw6)begin
+			cnt_cat<=2'd0;
+			cnt_dog<=2'd0;
+			cnt_mouse<=2'd0;
+			cnt_canoe<=4'd0;
+
+			cat_position <= 1'd0;
+			dog_position <= 1'd0;
+			mouse_position <= 1'd0;
+			canoe_position <= 1'd0;
+
+			ones <= 4'd0;
+			tens <= 4'd0;
+		end
+	end
+	else if(cat_crossing == 1'b1)begin	// 猫过河
+		if(cat_position)begin		
 			if(count_4==3)begin
 				count_4 <= 0;
 
 				if(cnt_cat==2'd0)begin
-					cat_position<=0;		// 停止后在左岸
-					cat_crossing<=0;		// 过河完成
-					canoe_position <= 0;	// 停止后在左岸
+					cat_position<=0;		
+					cat_crossing<=0;		
+					canoe_position <= 0;	
+
+					// 次数加一
+					if(ones == 4'd9)begin
+						tens <= tens + 1;
+						ones <= 4'd0;
+					end
+					else	ones <= ones + 1;
 				end
 				else cnt_cat<=cnt_cat-1;
 			end
@@ -92,14 +123,21 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			if(cnt_canoe == 4'd0)	cnt_canoe <= cnt_canoe;
 			else		cnt_canoe <= cnt_canoe - 1;
 		end
-		else begin							// 原来在左岸
+		else begin
 			if(count_4==3)begin
 				count_4 <= 0;
 
 				if(cnt_cat==2'd3)begin
-					cat_position <= 1;		// 停止后在右岸
-					cat_crossing <= 0;		// 过河完成
-					canoe_position <= 1;	// 停止后在右岸
+					cat_position <= 1;
+					cat_crossing <= 0;
+					canoe_position <= 1;
+
+					// 次数加一
+					if(ones == 4'd9)begin
+						tens <= tens + 1;
+						ones <= 4'd0;
+					end
+					else	ones <= ones + 1;
 				end
 				else cnt_cat <= cnt_cat + 1;
 			end
@@ -109,15 +147,22 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			else		cnt_canoe <= cnt_canoe + 1;
 		end
 	end
-	else if(dog_crossing == 1'b1)begin			// 当按下按钮，开始过河
-		if(dog_position)begin						// 原来在右岸
+	else if(dog_crossing == 1'b1)begin	// 狗过河
+		if(dog_position)begin
 			if(count_4==3)begin
 				count_4 <= 0;
 
 				if(cnt_dog == 2'd0)begin
-					dog_position <= 0;					// 停止后在左岸
-					dog_crossing <= 0;				// 停止动画
+					dog_position <= 0;
+					dog_crossing <= 0;
 					canoe_position <= 0;
+
+					// 次数加一
+					if(ones == 4'd9)begin
+						tens <= tens + 1;
+						ones <= 4'd0;
+					end
+					else	ones <= ones + 1;
 				end
 				else cnt_dog <= cnt_dog - 1;
 			end
@@ -126,14 +171,21 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			if(cnt_canoe == 4'd0)	cnt_canoe <= cnt_canoe;
 			else		cnt_canoe <= cnt_canoe - 1;
 		end
-		else begin								// 原来在左岸
+		else begin
 			if(count_4==3)begin
 				count_4 <= 0;
 
 				if(cnt_dog == 2'd3)begin
-					dog_position <= 1;					// 停止后在右岸
-					dog_crossing <= 0;				// 停止动画
+					dog_position <= 1;
+					dog_crossing <= 0;
 					canoe_position <= 1;
+
+					// 次数加一
+					if(ones == 4'd9)begin
+						tens <= tens + 1;
+						ones <= 4'd0;
+					end
+					else	ones <= ones + 1;
 				end
 				else cnt_dog <= cnt_dog + 1;
 			end
@@ -143,15 +195,22 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			else		cnt_canoe <= cnt_canoe + 1;
 		end
 	end
-	else if(mouse_crossing == 1'b1)begin			// 当按下按钮，开始过河
-		if(mouse_position)begin						// 原来在右岸
+	else if(mouse_crossing == 1'b1)begin	// 鼠过河
+		if(mouse_position)begin
 			if(count_4==3)begin
 				count_4 <= 0;
 
 				if(cnt_mouse == 2'd0)begin
-					mouse_position <= 0;					// 停止后在左岸
-					mouse_crossing <= 0;				// 停止动画
+					mouse_position <= 0;
+					mouse_crossing <= 0;
 					canoe_position <= 0;
+
+					// 次数加一
+					if(ones == 4'd9)begin
+						tens <= tens + 1;
+						ones <= 4'd0;
+					end
+					else	ones <= ones + 1;
 				end
 				else cnt_mouse <= cnt_mouse - 1;
 			end
@@ -160,14 +219,21 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			if(cnt_canoe == 4'd0)	cnt_canoe <= cnt_canoe;
 			else		cnt_canoe <= cnt_canoe - 1;
 		end
-		else begin								// 原来在左岸
+		else begin
 			if(count_4==3)begin
 				count_4 <= 0;
 
 				if(cnt_mouse == 2'd3)begin
-					mouse_position <= 1;					// 停止后在右岸
-					mouse_crossing <= 0;				// 停止动画
+					mouse_position <= 1;
+					mouse_crossing <= 0;
 					canoe_position <= 1;
+
+					// 次数加一
+					if(ones == 4'd9)begin
+						tens <= tens + 1;
+						ones <= 4'd0;
+					end
+					else	ones <= ones + 1;
 				end
 				else cnt_mouse <= cnt_mouse + 1;
 			end
@@ -177,19 +243,33 @@ always @(posedge clk_4Hz, posedge btn_7_out,posedge btn_6_out, posedge btn_5_out
 			else		cnt_canoe <= cnt_canoe + 1;
 		end
 	end
-	else if (canoe_crossing == 1'b1) begin
-		if(canoe_position)begin						// 原来在右岸
+	else if (canoe_crossing == 1'b1) begin	// 单独过河
+		if(canoe_position)begin
 			if(cnt_canoe == 4'd0)begin
-				canoe_position <= 0;					// 停止后在左岸
-				canoe_crossing <= 0;				// 停止动画
+				canoe_position <= 0;
+				canoe_crossing <= 0;
+
+				// 次数加一
+				if(ones == 4'd9)begin
+					tens <= tens + 1;
+					ones <= 4'd0;
+				end
+				else	ones <= ones + 1;
 			end
 			else
 				cnt_canoe <= cnt_canoe - 1;
 		end
 		else begin
 			if(cnt_canoe == 4'd15)begin
-				canoe_position <= 1;					// 停止后在左岸
-				canoe_crossing <= 0;				// 停止动画
+				canoe_position <= 1;
+				canoe_crossing <= 0;
+
+				// 次数加一
+				if(ones == 4'd9)begin
+					tens <= tens + 1;
+					ones <= 4'd0;
+				end
+				else	ones <= ones + 1;
 			end
 			else
 				cnt_canoe <= cnt_canoe + 1;
@@ -239,6 +319,58 @@ always @(*) begin
 			endcase
 		default: LD = 16'b0000_0000_0000_0000;
 	endcase
+end
+
+// reg [3:0] ones;	// 个位
+// reg [3:0] tens;	// 十位
+initial begin
+	ones <= 4'd0;
+	tens <= 4'd0;
+end
+always @(*) begin
+	case (sw6)
+		1'd1:
+			case (count_2)
+				1'd0:begin		// 个位
+					cat = 8'b1111_1110;
+					case (ones)
+						0: seg = 8'b0011_1111;
+						1: seg = 8'b0000_0110;
+						2: seg = 8'b0101_1011;
+						3: seg = 8'b0100_1111;
+						4: seg = 8'b0110_0110;
+						5: seg = 8'b0110_1101;
+						6: seg = 8'b0111_1101;
+						7: seg = 8'b0000_0111;
+						8: seg = 8'b0111_1111;
+						default: seg = 8'b0110_1111;
+					endcase
+				end
+				default:begin	// 十位
+					cat = 8'b1111_1101;
+					case (tens)
+						0: seg = 8'b0011_1111;
+						1: seg = 8'b0000_0110;
+						2: seg = 8'b0101_1011;
+						3: seg = 8'b0100_1111;
+						4: seg = 8'b0110_0110;
+						5: seg = 8'b0110_1101;
+						6: seg = 8'b0111_1101;
+						7: seg = 8'b0000_0111;
+						8: seg = 8'b0111_1111;
+						default: seg = 8'b0110_1111;
+					endcase
+				end
+			endcase
+		default: begin seg = 8'b0000_0000; cat = 8'b1111_1111; end
+	endcase
+end
+
+reg count_2;
+initial count_2 <= 0;
+always @(posedge clk_1kHz) begin
+	if(count_2 == 1'd1)	count_2 <= 0;
+	else	count_2 <= count_2 + 1;
 end
 
 endmodule
