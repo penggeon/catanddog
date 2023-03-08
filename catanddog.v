@@ -16,60 +16,63 @@ module catanddog(
 	output [7:0] seg,
 	output [7:0] cat,
 
-	output clk_4Hz,
-	output clk_025Hz,
+	output beeper_out
 
-	output btn_7_out,
-	output btn_6_out,
-	output btn_5_out,
-	output btn_4_out,
-	output btn_0_out,
+	// output clk_4Hz,
+	// output clk_025Hz,
 
-	output cat_crossing,
-	output dog_crossing,
-	output mouse_crossing,
-	output canoe_crossing,
-	output [1:0] cnt_cat,
-	output [1:0] cnt_dog,
-	output [1:0] cnt_mouse,
-	output [3:0] cnt_canoe,
+	// output btn_7_out,
+	// output btn_6_out,
+	// output btn_5_out,
+	// output btn_4_out,
+	// output btn_0_out,
 
-	output [3:0] ones,
-	output [3:0] tens,
+	// output cat_crossing,
+	// output dog_crossing,
+	// output mouse_crossing,
+	// output canoe_crossing,
+	// output [1:0] cnt_cat,
+	// output [1:0] cnt_dog,
+	// output [1:0] cnt_mouse,
+	// output [3:0] cnt_canoe,
 
-	output [1:0] gameDifficulty,
-	output [1:0] gameState	// 0失败1成功2继续
+	// output [3:0] ones,
+	// output [3:0] tens,
+
+	// output [1:0] gameDifficulty,
+	// output [1:0] gameState	// 0失败1成功2继续
 );
 
 // ---引用模块实例---
-// wire clk_4Hz;
-// wire clk_025Hz;
+wire clk_4Hz;
+wire clk_025Hz;
 
-// wire btn_7_out;
-// wire btn_6_out;
-// wire btn_5_out;
-// wire btn_4_out;
-// wire btn_0_out;
+wire btn_7_out;
+wire btn_6_out;
+wire btn_5_out;
+wire btn_4_out;
+wire btn_0_out;
 
-// wire cat_crossing;
-// wire dog_crossing;
-// wire mouse_crossing;
-// wire canoe_crossing;
-// wire [1:0] cnt_cat;
-// wire [1:0] cnt_dog;
-// wire [1:0] cnt_mouse;
-// wire [3:0] cnt_canoe;
+wire cat_crossing;
+wire dog_crossing;
+wire mouse_crossing;
+wire canoe_crossing;
+wire [1:0] cnt_cat;
+wire [1:0] cnt_dog;
+wire [1:0] cnt_mouse;
+wire [3:0] cnt_canoe;
 
-// wire [3:0] ones;
-// wire [3:0] tens;
+wire [3:0] ones;
+wire [3:0] tens;
 
-// wire [1:0] gameDifficulty;
-// wire [1:0] gameState;
+wire [1:0] gameDifficulty;
+wire [1:0] gameState;
 
 // 导线定义
 wire count_2;
 wire [2:0] count_8;
 wire count_2_025Hz;
+wire [2:0] count_8_4Hz;
 
 // 消抖模块
 debounce debounce_0(clk_1kHz,btn_7,btn_7_out);
@@ -86,6 +89,7 @@ divide_025Hz divide_025Hz_0(clk_1kHz,clk_025Hz);
 Counter_8 Counter_8_0(clk_1kHz, count_8);
 Counter_2 Counter_2_0(clk_1kHz, count_2);
 Counter_2_025Hz Counter_2_025Hz_0(clk_025Hz, count_2_025Hz);
+Counter_8_4Hz Counter_8_4Hz_0(clk_4Hz, count_8_4Hz);
 
 // 主模块
 Main Main_0(clk_1kHz,clk_4Hz,clk_025Hz,sw6,sw5,
@@ -105,6 +109,6 @@ row, col_r, col_g
 DigitalTube DigitalTube_0(count_2, sw6, sw5, gameDifficulty, gameState,
 ones, tens, seg, cat
 );
-
+Beeper Beeper_0(sw6, sw5, gameState, count_8_4Hz, beeper_out);
 
 endmodule
