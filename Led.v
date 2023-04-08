@@ -1,4 +1,7 @@
-// -------------LED显示模块------------------
+/**
+ * 模块名：Led
+ * 描述：Led显示模块
+ */
 module Led(
   input count_2_025Hz,
   input sw6,

@@ -1,4 +1,7 @@
-// -------------点阵显示------------------
+/**
+ * 模块名：DotMatrix
+ * 描述：点阵显示模块
+ */
 module DotMatrix(
   input [2:0] count_8,
   input sw6,

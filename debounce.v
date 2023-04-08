@@ -1,4 +1,7 @@
-// -----------防抖模块--------------------
+/**
+ * 模块名：debounce
+ * 描述：消抖模块
+ */
 module debounce(
 	input clk_1kHz,			// 时钟信号
 	input key,				// 输入

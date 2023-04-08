@@ -1,4 +1,7 @@
-// -------------时钟分频模块------------------
+/**
+ * 模块名：divide_025Hz
+ * 描述：时钟分频(产生0.25Hz)
+ */
 module divide_025Hz(
 	input clk_1kHz,			// 输入时钟
 	output reg clk_025Hz		// 输出时钟

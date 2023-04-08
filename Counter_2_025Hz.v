@@ -1,4 +1,7 @@
-// -------------模2计数器 1Hz------------------
+/**
+ * 模块名：Counter_2_025Hz
+ * 描述：模2计数器(0.25kHz)
+ */
 module Counter_2_025Hz(
 	input clk_025Hz,			// 输入时钟
 	output reg count_2_025Hz		// 输出时钟

@@ -1,4 +1,7 @@
-// -------------模8计数器 4Hz------------------
+/**
+ * 模块名：Counter_8_4Hz
+ * 描述：模8计数器(4Hz)
+ */
 module Counter_8_4Hz(
 	input clk_4Hz,			// 输入时钟
 	output reg [2:0] count_8_4Hz		// 输出时钟

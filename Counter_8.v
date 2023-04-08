@@ -1,4 +1,7 @@
-// -------------模8计数器------------------
+/**
+ * 模块名：Counter_8
+ * 描述：模8计数器(1kHz)
+ */
 module Counter_8(
 	input clk_1kHz,			// 输入时钟
 	output reg [2:0] count_8		// 输出时钟

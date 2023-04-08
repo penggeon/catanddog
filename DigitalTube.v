@@ -1,4 +1,7 @@
-// -------------数码管显示模块------------------
+/**
+ * 模块名：DigitalTube
+ * 描述：数码管显示模块
+ */
 module DigitalTube(
   input count_2,
   input sw6,

@@ -1,4 +1,7 @@
-// -------------时钟分频模块------------------
+/**
+ * 模块名：divide_4Hz
+ * 描述：时钟分频(产生4Hz)
+ */
 module divide_4Hz(
 	input clk_1kHz,			// 输入时钟
 	output reg clk_4Hz		// 输出时钟

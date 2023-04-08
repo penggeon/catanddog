@@ -1,4 +1,7 @@
-// -------------模2计数器------------------
+/**
+ * 模块名：Counter_2
+ * 描述：模2计数器(1kHz)
+ */
 module Counter_2(
 	input clk_1kHz,			// 输入时钟
 	output reg count_2		// 输出时钟
