@@ -6,10 +6,8 @@
 
 > 注意：
 >
-> 1. 在网址 https://www.studysomething.top/other/catanddog.html 查看此文档更为方便
+> 1. 在网址 [https://www.studysomething.top/other/catanddog.html](https://www.studysomething.top/post/16) 查看此文档更为方便
 > 2. 主模块默认名为 <code>catanddog</code>，若需使用请自行修改
-
-[toc]
 
 # 一、设计课题的任务要求
 
