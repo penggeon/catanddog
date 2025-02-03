@@ -6,7 +6,7 @@
 
 > 注意：
 >
-> 1. 在网址 https://www.studysomething.top/post/16 查看此文档更为方便
+> 1. 在网址 https://www.cnblogs.com/penggeon/p/-/verilog-cat-and-dog 查看此文档更为方便
 > 2. 主模块默认名为 <code>catanddog</code>，若需使用请自行修改
 
 # 一、设计课题的任务要求
